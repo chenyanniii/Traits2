@@ -3,7 +3,7 @@ library(nlme)
 library(geiger)
 
 ### The covariance (correlation) structure between species is permitted to match 
-### that expected under a Brownian motion process of evolution on the tree.
+### that expected under a Brownian motion process (or other processes) of evolution on the tree.
 
 ## define the covariance structure under Brownian motion process 
 bm <- corBrownian(1, TreeAllMatrix)
