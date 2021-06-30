@@ -22,7 +22,7 @@ library(broom)
 library(patchwork)
 library(ggtree)
 
-setwd("~/Desktop/Traits_Validated") 
+#setwd("~/Desktop/Traits_Validated") 
 
 ##########################################################################################
 ################################## 0. Import Data ########################################
