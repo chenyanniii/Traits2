@@ -29,9 +29,9 @@ library(ggtree)
 ##########################################################################################
 
 ## Trait Value Data
-InputMatrix <- read.csv("Input/RawData.csv") # Import Raw Measurement Data
+InputMatrix <- read.csv("../Input/RawData.csv") # Import Raw Measurement Data
 
-Germination = read_xlsx("Input/Germination(sd_se).xlsx") %>%
+Germination = read_xlsx("../Input/Germination(sd_se).xlsx") %>%
   mutate(mean_Germination = mean) %>%
   mutate(se_Germination = se) %>%
   dplyr::select(Species, mean_Germination, se_Germination)  # Import Germination Data
@@ -47,7 +47,7 @@ dat = InputMatrix %>% group_by(Family, Species, Classification) %>%
 
 ## Input Phylogenetic Tree
 ## Some prep work
-treeVascularPlants <- read.tree("Input/Vascular_Plants_rooted.tre")
+treeVascularPlants <- read.tree("../Input/Vascular_Plants_rooted.tre")
 tips <-treeVascularPlants$tip.label
 Genera<-unique(sapply(strsplit(tips,"_"),function(x) x[1]))
 

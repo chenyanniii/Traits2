@@ -18,7 +18,7 @@ library(broom)
 library(patchwork)
 library(ggtree)
 
-InputMatrix <- read.csv("Input/RawData.csv")  # Import Raw Measurement Data
+InputMatrix <- read.csv("../Input/RawData.csv")  # Import Raw Measurement Data
 
 Rep = 10 # Number of replicates in measurements
 
@@ -33,7 +33,7 @@ appendix = InputMatrix %>% group_by(Family, Species, Classification) %>%
 ############################## 1. Building Phylogeny #####################################
 ##########################################################################################
 ## Prepare Phylogenetic Tree
-treeVascularPlants <- read.tree("Input/Vascular_Plants_rooted.tre")
+treeVascularPlants <- read.tree("../Input/Vascular_Plants_rooted.tre")
 tips <-treeVascularPlants$tip.label
 Genera<-unique(sapply(strsplit(tips,"_"),function(x) x[1]))
 
