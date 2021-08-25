@@ -86,7 +86,7 @@ server <- function(input, output, session) {
     
     phyloSigHeight.k = cal_phyloSigHeight.k()
     
-    #phylosigArea.k = cal_phylosigArea.k()
+    phylosigArea.k = cal_phylosigArea.k()
     
     #phylosigGermination.k = cal_phylosigGermination.k()
     
@@ -95,14 +95,20 @@ server <- function(input, output, session) {
     
     pHeight = plot(phyloSigHeight.k)
     
-    #plot(phylosigArea.k)
+    pArea = plot(phylosigArea.k)
     
-    #plot(phylosigGermination.k)
+    pGermination = plot(phylosigGermination.k)
+    
+    p1 = qplot(1:10,rnorm(10))
+    p2 = qplot(1:10,rnorm(10))
     
     #ptlist = list(cal_phyloSigMass.k(),cal_phyloSigHeight.k())
     
-    grid.arrange(grobs = list(pMass, pHeight), ncol=2, top = "Signals")
+    #pMass|pHeight
+    #pMass|pArea
+    pMass|pGermination
     
+    p1+p2+plot_layout(widths = c(2,1))
     
   }) 
   #################### Display Model Selection ####################
