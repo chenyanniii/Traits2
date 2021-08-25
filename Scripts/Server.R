@@ -53,61 +53,58 @@ server <- function(input, output, session) {
   ## need the variable from previous section: phyloposi_species
   ## have all the variable store globally, then display in reactive function
   
-  output$Phylogenetic_Signal <- renderText({
+  output$Phylogenetic_Signal <- renderPlot({
     
-    PhyloSig = reactive({
-      
-      plot_dat = plot_react()
-      
-      tree_species = PruneTree(plot_dat$Species)
-      dist = cophenetic.phylo(tree_species)
-      phyloposi = isoMDS(dist) %>% as.data.frame()
-      
-      phyloposi_species = phyloposi %>% mutate(Species = row.names(phyloposi)) %>% 
-        mutate(phy1 = round(scale(points.1),digits = 1)) %>% 
-        mutate(phy2 = round(scale(points.2), digits = 1))
-      
-      AllMatrix = merge(plot_dat, phyloposi_species)
-      
-      AllMatrix_G = filter(merge(AllMatrix, Germination), Species %in% input$checked_species)
-      
-      ### Format data before test phylogenetic signal
-      Mass.All <- AllMatrix_G$mean_Mass
-      names(Mass.All) <- AllMatrix$Species
-      
-      Height.All <- AllMatrix_G$mean_Height
-      names(Height.All) <- AllMatrix$Species
-      
-      Area.All <- AllMatrix_G$mean_Area
-      names(Area.All) <- AllMatrix$Species
-      
-      Germination.All <- AllMatrix_G$mean_Germination
-      names(Germination.All) <- AllMatrix_G$Species
-      
-      PhyloSigMass.k <- phylosig(tree_species, Mass.All, method="K", test=TRUE, nsim=999)
-      
-      PhyloSigHeight.k <- phylosig(tree_species, Height.All, method="K", test=TRUE, nsim=999)
-      
-      phylosigArea.k <- phylosig(tree_species, Area.All, method="K", test=TRUE, nsim=999)
-      
-      phylosigGermination.k <- phylosig(tree_species, Germination.All, method="K", test=TRUE, nsim=999)
-      
-      paste0("The phylogenetic signal for seed mass is", PhyloSigMass.k, ".")
-      
-      paste0("The phylogenetic signal for seed height is", PhyloSigHeight.k, ".")
-      
-      paste0("The phylogenetic signal for seed area is", phylosigArea.k, ".")
-      
-      paste0("The phylogenetic signal for seed area is", phylosigArea.k, ".")
-      
-      paste0("The phylogenetic signal for seed germiantion rate is", phylosigGermination.k, ".")
-      
-    })
+    ## prepdata
+    plot_dat = plot_react()
+    # prep species list
+    tree_species = PruneTree(plot_dat$Species)
     
-    PhyloSig()
+    dist = cophenetic.phylo(tree_species)
+    phyloposi = isoMDS(dist) %>% as.data.frame()
     
-  })
-  
+    phyloposi_species = phyloposi %>% mutate(Species = row.names(phyloposi)) %>% 
+      mutate(phy1 = round(scale(points.1),digits = 1)) %>% 
+      mutate(phy2 = round(scale(points.2), digits = 1))
+    
+    AllMatrix = merge(plot_dat, phyloposi_species)
+    
+    AllMatrix_G = filter(merge(AllMatrix, Germination), Species %in% input$checked_species)
+    
+    Mass.All <- AllMatrix_G$mean_Mass
+    names(Mass.All) <- AllMatrix_G$Species
+    
+    cal_phyloSigMass.k = reactive({phylosig(tree_species, Mass.All, method="K", test=TRUE, nsim=999)})
+    
+    cal_phyloSigHeight.k = reactive({phylosig(tree_species, Height.All, method="K", test=TRUE, nsim=999)})
+    
+    cal_phylosigArea.k = reactive({phylosig(tree_species, Area.All, method="K", test=TRUE, nsim=999)})
+    
+    cal_phylosigGermination.k = reactive({phylosig(tree_species, Germination.All, method="K", test=TRUE, nsim=999)})
+    
+    phyloSigMass.k = cal_phyloSigMass.k()
+    
+    phyloSigHeight.k = cal_phyloSigHeight.k()
+    
+    #phylosigArea.k = cal_phylosigArea.k()
+    
+    #phylosigGermination.k = cal_phylosigGermination.k()
+    
+    
+    pMass = plot(phyloSigMass.k)
+    
+    pHeight = plot(phyloSigHeight.k)
+    
+    #plot(phylosigArea.k)
+    
+    #plot(phylosigGermination.k)
+    
+    #ptlist = list(cal_phyloSigMass.k(),cal_phyloSigHeight.k())
+    
+    grid.arrange(grobs = list(pMass, pHeight), ncol=2, top = "Signals")
+    
+    
+  }) 
   #################### Display Model Selection ####################
   output$Model_Selection <- renderPlot({
     

@@ -239,6 +239,7 @@ phylosigGermination.k <- phylosig(TreeAllMatrix, Germination.All, method="K", te
 print("The phylogenetic signal for seed mass is below")
 print(PhyloSigMass.k)
 print(PhyloSigMass.l)
+#plot(PhyloSigMass.k)
 
 #PhyloSigHeight.l
 print("The phylogenetic signal for seed height is  below")
