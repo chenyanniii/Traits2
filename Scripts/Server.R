@@ -98,17 +98,57 @@ server <- function(input, output, session) {
            " The phylogenetic signal of seed germination is ", round(phyloSigGermination.k$K, digits = 2), " (p = ", round(phyloSigGermination.k$P, digits = 2) , ").",
            " The phylogenetic signal of seed mass is ", round(phyloSigMass.k$K, digits = 2), " (p = ", round(phyloSigMass.k$P, digits = 2) , ").",
            " The phylogenetic signal of seed height is ", round(phyloSigHeight.k$K, digits = 2), " (p = ", round(phyloSigHeight.k$P, digits = 2), ").")
-    
-    
   })
   
   #################### Display Model Selection ####################
-  output$Model_Selection <- renderPlot({
-    
-    
-    
-    
-  })
+
+    output$Model_Selection <- renderText({
+      
+      ## prep data
+      plot_dat = plot_react()
+      # prep species list
+      tree_species = PruneTree(plot_dat$Species)
+      
+      dist = cophenetic.phylo(tree_species)
+      phyloposi = isoMDS(dist) %>% as.data.frame()
+      
+      phyloposi_species = phyloposi %>% mutate(Species = row.names(phyloposi)) %>% 
+        mutate(phy1 = round(scale(points.1),digits = 1)) %>% 
+        mutate(phy2 = round(scale(points.2), digits = 1))
+      
+      AllMatrix = merge(plot_dat, phyloposi_species)
+      
+      AllMatrix_G = filter(merge(AllMatrix, Germination), Species %in% input$checked_species)
+      
+      
+      plot_react_scale = reactive({filter(AllMatrix_G, Species %in% input$checked_species) %>%
+          mutate(scaled_Area = scale(mean_Area)) %>%
+          mutate(scaled_Height = scale(mean_Height)) %>%
+          mutate(scaled_Mass = scale(mean_Mass)) %>%
+          mutate(scaled_Germination = scale(mean_Germination)) %>%
+          dplyr::select(scaled_Area, scaled_Height, scaled_Mass, scaled_Germination, phy1, phy2)
+      })
+      
+      AllMatrix_G_scaled = plot_react_scale ()
+      
+      models = list()
+      for (i in seq_along(vars)){
+        vc = combn(vars, i)
+        for (j in 1:ncol(vc)){
+          model = as.formula(paste0('scaled_Germination ~', paste0(vc[, j], collapse = '+')))
+          models = c(models, model)
+        }
+      }
+      
+      glmmodels = lapply(models, function(x) glm(x, data = AllMatrix_G_scaled))
+      
+      AICc = sapply(models, function(x) AICc(glm(x, data = AllMatrix_G_scaled), 
+                                             return.K = FALSE))
+      paste0("The minimun AICc vallue is equal to ", round(min(AICc), digits = 2), "; 
+             The maximum AICc is equal to ", round(max(AICc), digits = 2), ".")
+      })
 }
+      
+
 
 
