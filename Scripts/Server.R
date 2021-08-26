@@ -55,56 +55,50 @@ server <- function(input, output, session) {
   
   output$Phylogenetic_Signal <- renderText({
     
-    PhyloSig = reactive({
-      
-      plot_dat = plot_react()
-      
-      tree_species = PruneTree(plot_dat$Species)
-      dist = cophenetic.phylo(tree_species)
-      phyloposi = isoMDS(dist) %>% as.data.frame()
-      
-      phyloposi_species = phyloposi %>% mutate(Species = row.names(phyloposi)) %>% 
-        mutate(phy1 = round(scale(points.1),digits = 1)) %>% 
-        mutate(phy2 = round(scale(points.2), digits = 1))
-      
-      AllMatrix = merge(plot_dat, phyloposi_species)
-      
-      AllMatrix_G = filter(merge(AllMatrix, Germination), Species %in% input$checked_species)
-      
-      ### Format data before test phylogenetic signal
-      Mass.All <- AllMatrix_G$mean_Mass
-      names(Mass.All) <- AllMatrix$Species
-      
-      Height.All <- AllMatrix_G$mean_Height
-      names(Height.All) <- AllMatrix$Species
-      
-      Area.All <- AllMatrix_G$mean_Area
-      names(Area.All) <- AllMatrix$Species
-      
-      Germination.All <- AllMatrix_G$mean_Germination
-      names(Germination.All) <- AllMatrix_G$Species
-      
-      PhyloSigMass.k <- phylosig(tree_species, Mass.All, method="K", test=TRUE, nsim=999)
-      
-      PhyloSigHeight.k <- phylosig(tree_species, Height.All, method="K", test=TRUE, nsim=999)
-      
-      phylosigArea.k <- phylosig(tree_species, Area.All, method="K", test=TRUE, nsim=999)
-      
-      phylosigGermination.k <- phylosig(tree_species, Germination.All, method="K", test=TRUE, nsim=999)
-      
-      paste0("The phylogenetic signal for seed mass is", PhyloSigMass.k, ".")
-      
-      paste0("The phylogenetic signal for seed height is", PhyloSigHeight.k, ".")
-      
-      paste0("The phylogenetic signal for seed area is", phylosigArea.k, ".")
-      
-      paste0("The phylogenetic signal for seed area is", phylosigArea.k, ".")
-      
-      paste0("The phylogenetic signal for seed germiantion rate is", phylosigGermination.k, ".")
-      
-    })
+    ## prep data
+    plot_dat = plot_react()
+    # prep species list
+    tree_species = PruneTree(plot_dat$Species)
     
-    PhyloSig()
+    dist = cophenetic.phylo(tree_species)
+    phyloposi = isoMDS(dist) %>% as.data.frame()
+    
+    phyloposi_species = phyloposi %>% mutate(Species = row.names(phyloposi)) %>% 
+      mutate(phy1 = round(scale(points.1),digits = 1)) %>% 
+      mutate(phy2 = round(scale(points.2), digits = 1))
+    
+    AllMatrix = merge(plot_dat, phyloposi_species)
+    
+    AllMatrix_G = filter(merge(AllMatrix, Germination), Species %in% input$checked_species)
+    
+    Mass.All <- AllMatrix_G$mean_Mass
+    names(Mass.All) <- AllMatrix_G$Species
+    
+    # calculate the phylogenetic signals
+    
+    cal_phyloSigMass.k = reactive({phylosig(tree_species, Mass.All, method="K", test=TRUE, nsim=999)})
+    
+    cal_phyloSigHeight.k = reactive({phylosig(tree_species, Height.All, method="K", test=TRUE, nsim=999)})
+    
+    cal_phyloSigArea.k = reactive({phylosig(tree_species, Area.All, method="K", test=TRUE, nsim=999)})
+    
+    cal_phyloSigGermination.k = reactive({phylosig(tree_species, Germination.All, method="K", test=TRUE, nsim=999)})
+    
+    phyloSigMass.k = cal_phyloSigMass.k()
+    
+    phyloSigHeight.k = cal_phyloSigHeight.k()
+    
+    phyloSigArea.k = cal_phyloSigArea.k()
+    
+    phyloSigGermination.k = cal_phyloSigGermination.k()
+    
+    # display results
+    
+    paste0("The phylogenetic signal of seed area is ", round(phyloSigArea.k$K, digits = 2), " (p = ", round(phyloSigArea.k$P, digits = 2) , ").",
+           " The phylogenetic signal of seed germination is ", round(phyloSigGermination.k$K, digits = 2), " (p = ", round(phyloSigGermination.k$P, digits = 2) , ").",
+           " The phylogenetic signal of seed mass is ", round(phyloSigMass.k$K, digits = 2), " (p = ", round(phyloSigMass.k$P, digits = 2) , ").",
+           " The phylogenetic signal of seed height is ", round(phyloSigHeight.k$K, digits = 2), " (p = ", round(phyloSigHeight.k$P, digits = 2), ").")
+    
     
   })
   

@@ -45,7 +45,7 @@ ui <- fluidPage(
       tabsetPanel(
         tabPanel("Phylogenetic_Tree", plotOutput("Phylogenetic_Tree")),
         tabPanel("Phylogenetic_Position", plotOutput("Phylogenetic_Position")),
-        tabPanel("Phylogenetic_Signal", plotOutput("Phylogenetic_Signal")),
+        tabPanel("Phylogenetic_Signal", textOutput("Phylogenetic_Signal")),
         tabPanel("Model_Selection"), plotOutput("Model_Selection")
       )
     )))
