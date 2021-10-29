@@ -53,9 +53,11 @@ server <- function(input, output, session) {
   ## need the variable from previous section: phyloposi_species
   ## have all the variable store globally, then display in reactive function
   
-  output$Phylogenetic_Signal <- renderText({
-    
-    ## prep data
+
+  output$Phylogenetic_Signal <- renderTable({
+
+    ## prepdata
+
     plot_dat = plot_react()
     # prep species list
     tree_species = PruneTree(plot_dat$Species)
@@ -83,7 +85,6 @@ server <- function(input, output, session) {
     Germination.All <- AllMatrix_G$mean_Germination
     names(Germination.All) <- AllMatrix_G$Species
     
-    
     # calculate the phylogenetic signals
     
     cal_phyloSigMass.k = reactive({phylosig(tree_species, Mass.All, method="K", test=TRUE, nsim=999)})
@@ -102,20 +103,37 @@ server <- function(input, output, session) {
     
     phyloSigGermination.k = cal_phyloSigGermination.k()
     
-    # display results
+
+    # text display results
     
-    paste0("The phylogenetic signal of seed area is ", round(phyloSigArea.k$K, digits = 2), " (p = ", round(phyloSigArea.k$P, digits = 2) , ").",
-           " The phylogenetic signal of seed germination is ", round(phyloSigGermination.k$K, digits = 2), " (p = ", round(phyloSigGermination.k$P, digits = 2) , ").",
-           " The phylogenetic signal of seed mass is ", round(phyloSigMass.k$K, digits = 2), " (p = ", round(phyloSigMass.k$P, digits = 2) , ").",
-           " The phylogenetic signal of seed height is ", round(phyloSigHeight.k$K, digits = 2), " (p = ", round(phyloSigHeight.k$P, digits = 2), ").")
+    #paste0("The phylogenetic signal of seed area is ", round(phyloSigArea.k$K, digits = 2), " (p = ", round(phyloSigArea.k$P, digits = 2) , ").",
+    #       " The phylogenetic signal of seed germination is ", round(phyloSigGermination.k$K, digits = 2), " (p = ", round(phyloSigGermination.k$P, digits = 2) , ").",
+    #       " The phylogenetic signal of seed mass is ", round(phyloSigMass.k$K, digits = 2), " (p = ", round(phyloSigMass.k$P, digits = 2) , ").",
+    #       " The phylogenetic signal of seed height is ", round(phyloSigHeight.k$K, digits = 2), " (p = ", round(phyloSigHeight.k$P, digits = 2), ").")
+ 
+  
+    # table display results
+    tab_phyloSig = matrix(c(phyloSigMass.k$K, phyloSigHeight.k$K, phyloSigArea.k$K, 
+                            phyloSigGermination.k$K, phyloSigMass.k$P, phyloSigHeight.k$P, phyloSigArea.k$P, 
+                            phyloSigGermination.k$P), ncol = 2)
+    
+    colnames(tab_phyloSig) = c("Blomberg's K", "P-value")
+    
+    Variables = c("Mass", "Height", "Area", "Germination")
+    tab_phyloSig1 = cbind(Variables,tab_phyloSig)
+    tab_phyloSig1
+  
   })
   
   #################### Display Model Selection ####################
 
-  output$Model_Selection <- renderText({
+  output$Model_Selection <- renderTable({
+    
+    ## prepdata
     plot_dat = plot_react()
     # prep species list
     tree_species = PruneTree(plot_dat$Species)
+
     
     dist = cophenetic.phylo(tree_species)
     phyloposi = isoMDS(dist) %>% as.data.frame()
@@ -127,7 +145,6 @@ server <- function(input, output, session) {
     AllMatrix = merge(plot_dat, phyloposi_species)
     
     AllMatrix_G = filter(merge(AllMatrix, Germination), Species %in% input$checked_species)
-    
     
     plot_react_scaled = reactive({filter(AllMatrix_G, Species %in% input$checked_species) %>%
         mutate(scaled_Area = scale(mean_Area)) %>%
@@ -153,10 +170,30 @@ server <- function(input, output, session) {
     
     AICc = sapply(models, function(x) AICc(glm(x, data = AllMatrix_G_scaled), 
                                            return.K = FALSE))
-    paste0("The minimun AICc vallue is equal to ", round(min(AICc), digits = 2), "; 
-             The maximum AICc is equal to ", round(max(AICc), digits = 2), ".")
     
-  })
+    names(AICc) = sapply(glmmodels, function(x) x$formula)
+    
+    ## textPlot
+    #paste0("The minimun AICc vallue is equal to ", round(min(AICc), digits = 2), "; 
+             #The maximum AICc is equal to ", round(max(AICc), digits = 2), ".")
+
+    ## tablePlot
+    tab_models = data_frame(names(AICc),AICc)
+    colnames(tab_models) = c("Model", "AICc")
+    
+    tab_models
+    ## tablePlot1
+    #tab_model = matrix(sapply(glmmodels, function(x) x$formula))
+    #tab_model1 = cbind(tab_model, AICc)
+    
+    #rownames(tab_model1) = NULL
+    #colnames(tab_model1) = c("Model", "AICc")
+
+    
+  }) 
+  
+
+ 
 }
       
 
